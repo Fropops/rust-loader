@@ -7,6 +7,7 @@ shell is base64 encoded to prevent donut detection
 
 ## To build : 
 
+### Executable
 Win x86
 ```shell
 cargo build --target i686-pc-windows-gnu --release --features no_console
@@ -16,6 +17,15 @@ Win x64
 cargo build --target x86_64-pc-windows-gnu --release --features no_console
 ```
 
+### Dll
+Win x86
+```shell
+cargo build --target i686-pc-windows-gnu --release --lib
+```
+Win x64
+```shell
+cargo build --target x86_64-pc-windows-gnu --release --lib
+```
 
 ## Generate payload : 
 ```shell
